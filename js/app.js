@@ -151,6 +151,19 @@
       .getPropertyValue(METHOD_META[method].cssVar).trim() || '#2a78d6';
   }
 
+  /** Emoji wrapped so print CSS can drop them — emoji glyphs print
+      unreliably (missing/monochrome on many printers). */
+  function emo(icon) {
+    return '<span class="emoji" aria-hidden="true">' + icon + ' </span>';
+  }
+
+  /** Color swatch as inline SVG: backgrounds are often skipped by printers,
+      SVG fills always print. */
+  function swatch(color) {
+    return '<svg class="swatch" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">' +
+      '<rect width="12" height="12" rx="3" fill="' + color + '"/></svg>';
+  }
+
   /* ---------------- debt inputs ---------------- */
 
   var debtRowsEl = document.getElementById('debt-rows');
@@ -334,7 +347,7 @@
     // warnings
     var warnEl = document.getElementById('debt-warnings');
     warnEl.innerHTML = DebtEngine.validateDebts(debts)
-      .map(function (w) { return '<p>⚠️ ' + esc(w.message) + '</p>'; }).join('');
+      .map(function (w) { return '<p>' + emo('⚠️') + esc(w.message) + '</p>'; }).join('');
 
     if (!debts.length) {
       lastResults = null;
@@ -396,8 +409,7 @@
 
   function legendHtml(methods) {
     return '<div class="chart-legend">' + methods.map(function (m) {
-      return '<span class="item"><span class="swatch" style="background:' + seriesColor(m) + '"></span>' +
-        METHOD_META[m].label + '</span>';
+      return '<span class="item">' + swatch(seriesColor(m)) + METHOD_META[m].label + '</span>';
     }).join('') + '</div>';
   }
 
@@ -408,10 +420,10 @@
     var panel = document.getElementById('panel-' + method);
     var saved = savingsVsMinimum(run, min);
 
-    var html = '<p class="strategy-blurb">' + meta.icon + ' ' + meta.blurb + '</p>';
+    var html = '<p class="strategy-blurb">' + emo(meta.icon) + meta.blurb + '</p>';
 
     if (run.neverPayoff) {
-      html += '<div class="warnings"><p>⚠️ With the current payments, this plan never pays off — your ' +
+      html += '<div class="warnings"><p>' + emo('⚠️') + 'With the current payments, this plan never pays off — your ' +
         'payments don’t keep up with the interest being charged. Increase your extra monthly payment ' +
         'or check the minimum payments you entered.</p></div>';
       panel.innerHTML = html;
@@ -452,7 +464,7 @@
       (state.rollover ? '' : ' (rollover is currently turned off in your plan)') + '.</p></div>';
 
     // schedule
-    html += '<div class="panel-section"><h3>Month-by-month payment schedule</h3>' +
+    html += '<div class="panel-section schedule-section"><h3>Month-by-month payment schedule</h3>' +
       scheduleHtml(run) + '</div>';
 
     panel.innerHTML = html;
@@ -465,7 +477,7 @@
   function scheduleHtml(run) {
     var rows = run.months.map(function (m) {
       var paidNote = m.paidOff.map(function (id) {
-        return esc(run.perDebt[id] ? run.perDebt[id].name : id) + ' paid off! 🎉';
+        return esc(run.perDebt[id] ? run.perDebt[id].name : id) + ' paid off! ' + emo('🎉');
       }).join(', ');
       return '<tr' + (m.paidOff.length ? ' class="payoff-row"' : '') + '>' +
         '<td>' + m.m + '</td>' +
@@ -502,7 +514,7 @@
 
     // headline callout
     if (snow.neverPayoff || aval.neverPayoff) {
-      html += '<div class="warnings"><p>⚠️ With the current payments, these plans never pay off — your ' +
+      html += '<div class="warnings"><p>' + emo('⚠️') + 'With the current payments, these plans never pay off — your ' +
         'payments don’t keep up with interest. Increase your extra monthly payment.</p></div>';
       panel.innerHTML = html;
       return;
@@ -556,7 +568,7 @@
     }
     html += '<div class="panel-section"><h3>Payoff order by method</h3>' +
       '<div class="table-scroll"><table class="order-table"><thead><tr>' +
-      '<th>Order</th><th>❄️ Snowball pays off…</th><th>⛰ Avalanche pays off…</th>' +
+      '<th>Order</th><th>' + emo('❄️') + 'Snowball pays off…</th><th>' + emo('⛰') + 'Avalanche pays off…</th>' +
       '</tr></thead><tbody>' + orderRows + '</tbody></table></div>' +
       '<p class="panel-note">Same debts, same money — only the order changes. The snowball clears small ' +
       'balances early for motivation; the avalanche kills expensive interest first.</p></div>';
@@ -571,8 +583,7 @@
     var never = run.neverPayoff;
     return '<div class="method-card' + (isWinner ? ' is-winner' : '') + '">' +
       (isWinner ? '<span class="winner-badge">LOWEST COST</span>' : '') +
-      '<h3><span class="swatch" style="background:' + seriesColor(method) + '"></span>' +
-      meta.icon + ' ' + meta.label + '</h3>' +
+      '<h3>' + swatch(seriesColor(method)) + emo(meta.icon) + meta.label + '</h3>' +
       '<p class="method-sub">' + meta.sub + '</p>' +
       '<div class="method-stats">' +
       '<div class="row"><span>Debt-free date</span><span>' + (never ? 'Never' : fmtMonthLong(run.monthsToPayoff)) + '</span></div>' +
@@ -583,7 +594,7 @@
         (saved.interest == null ? '—' : money(saved.interest)) + '</span></div>' +
         '<div class="row hl"><span>Time saved vs. minimums</span><span>' +
         (saved.months == null ? '—' : fmtDuration(saved.months)) + '</span></div>' : '') +
-      (never ? '<div class="row"><span>⚠️ Minimum payments never catch up with interest here.</span></div>' : '') +
+      (never ? '<div class="row"><span>' + emo('⚠️') + 'Minimum payments never catch up with interest here.</span></div>' : '') +
       '</div></div>';
   }
 
@@ -615,9 +626,9 @@
             : (snow.payoffOrder[0].month < aval.payoffOrder[0].month ? 0 : 1)) : -1]
     ];
     return '<table class="metric-table"><thead><tr><th></th>' +
-      '<th><span class="metric-head"><span class="swatch" style="background:' + seriesColor('snowball') + '"></span>❄️ Snowball</span></th>' +
-      '<th><span class="metric-head"><span class="swatch" style="background:' + seriesColor('avalanche') + '"></span>⛰ Avalanche</span></th>' +
-      '<th><span class="metric-head"><span class="swatch" style="background:' + seriesColor('minimum') + '"></span>🐢 Minimums only</span></th>' +
+      '<th><span class="metric-head">' + swatch(seriesColor('snowball')) + emo('❄️') + 'Snowball</span></th>' +
+      '<th><span class="metric-head">' + swatch(seriesColor('avalanche')) + emo('⛰') + 'Avalanche</span></th>' +
+      '<th><span class="metric-head">' + swatch(seriesColor('minimum')) + emo('🐢') + 'Minimums only</span></th>' +
       '</tr></thead><tbody>' +
       rows.map(function (r) {
         // r[4]: which column is best — 0 snowball, 1 avalanche, -1 tie/none
@@ -751,7 +762,7 @@
       rolled += d.minPayment;
       var next = run.payoffOrder[i + 1];
       return '<div class="step">' +
-        '<div class="step-check">☐</div>' +
+        '<div class="step-check"><span class="cbox"></span></div>' +
         '<div class="step-body">' +
         '<div class="step-title">Target #' + (i + 1) + ': <strong>' + esc(p.name) + '</strong>' +
         '<span class="step-date">paid off ' + fmtMonth(p.month) + '</span></div>' +
@@ -761,7 +772,7 @@
           ? (state.rollover
             ? ' When it’s gone, roll its ' + money(d.minPayment) + '/mo into <strong>' + esc(next.name) + '</strong>.'
             : ' Then move on to <strong>' + esc(next.name) + '</strong>.')
-          : ' This is your last debt — pay it off and you’re <strong>DEBT-FREE!</strong> 🎉') +
+          : ' This is your last debt — pay it off and you’re <strong>DEBT-FREE!</strong>') +
         '</div></div></div>';
     }).join('');
 
@@ -795,15 +806,20 @@
       'thead th{font-size:11px;color:#8a949b;text-transform:uppercase;letter-spacing:.05em}' +
       'ol.rules{padding-left:20px;margin:0}ol.rules li{margin-bottom:8px}' +
       '.step{display:flex;gap:12px;border-left:3px solid #3fb3e5;background:#f6f8f9;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:10px;page-break-inside:avoid}' +
-      '.step-check{font-size:20px;color:#1d3543}' +
+      '.step-check .cbox{display:inline-block;width:15px;height:15px;border:2px solid #1d3543;border-radius:4px;margin-top:3px}' +
       '.step-title{font-size:15px}.step-date{float:right;color:#0c7a3c;font-weight:700;font-size:13px}' +
       '.step-detail{font-size:13.5px;color:#4d5e69;margin-top:2px}' +
       'ul.tips{padding-left:20px;margin:0}ul.tips li{margin-bottom:7px;font-size:14px}' +
       '.foot{margin-top:30px;padding-top:14px;border-top:2px solid #e2e7ea;font-size:11px;color:#8a949b}' +
-      '@media print{.page{padding:12px 0}}' +
+      // Print hygiene: real page margins, keep the brand tints when the browser
+      // allows background printing (all text is dark, so the document stays
+      // fully legible even when backgrounds are skipped).
+      '@page{margin:16mm}' +
+      '*{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+      '@media print{.page{padding:12px 0;max-width:none}.hero,.step{border:1px solid #e2e7ea}}' +
       '</style></head><body><div class="page">' +
       logo +
-      '<h1>' + meta.icon + ' My Debt-Free Game Plan</h1>' +
+      '<h1>My Debt-Free Game Plan</h1>' +
       '<p class="sub">' + (clientName ? 'Prepared for <strong>' + esc(clientName) + '</strong> · ' : '') +
       'The ' + meta.label + ' method · Created ' + MONTHS_LONG[new Date().getMonth()] + ' ' +
       new Date().getDate() + ', ' + new Date().getFullYear() + ' with the Gem Home Team Debt Payoff Calculator</p>' +
@@ -876,7 +892,8 @@
     lines.push(csvCell('Totals') + ',,' + run.totalPaid.toFixed(2) + ',' +
       run.totalInterest.toFixed(2) + ',' + (run.totalPaid - run.totalInterest).toFixed(2) + ',0');
 
-    var blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    // BOM so Excel opens the file as UTF-8 (accented debt names stay intact)
+    var blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'debt-payoff-' + run.strategy + '-schedule.csv';

@@ -237,7 +237,7 @@ main.wrap { padding: 34px 20px 20px; display: flex; flex-direction: column; gap:
 }
 .method-card h3 { margin: 0 0 2px; font-size: 17px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
 .method-sub { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
-.swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex: none; }
+.swatch { width: 12px; height: 12px; display: inline-block; flex: none; vertical-align: -1px; }
 .method-stats { display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
 .method-stats .row { display: flex; justify-content: space-between; gap: 10px; }
 .method-stats .row span:first-child { color: var(--ink-2); }
@@ -387,15 +387,55 @@ details.schedule[open] summary::after { transform: rotate(90deg); }
   .gem-house { width: 48px; height: 48px; }
 }
 
-/* ---------- Print ---------- */
+/* ---------- Print ----------
+   Rules of thumb baked in here:
+   - Emoji are hidden (unreliable glyphs on many printers/PDF viewers).
+   - Nothing may rely on a painted background: anything that is white-on-color
+     on screen switches to an outlined dark-on-white style for print.
+   - Tinted panels keep dark text, so they stay legible whether or not the
+     browser prints background graphics. */
+@page { margin: 14mm; }
 @media print {
   body { background: #fff; }
-  .site-header, .hero, .site-footer { padding: 10px 0; }
+  .emoji { display: none; }
+  .site-header, .hero { padding: 8px 0; }
   .hero { background: none; color: var(--ink); }
-  .hero p { color: var(--ink-2); }
-  .card { box-shadow: none; border: 1px solid var(--hairline); break-inside: avoid; }
-  .debt-actions, .results-tools, .schedule-tools, .tabs { display: none; }
+  .hero h1 { margin-top: 6px; }
+  .hero p, .hero strong { color: var(--ink-2); }
+  .card { box-shadow: none; border: 1px solid var(--hairline); }
+  .debt-actions, .results-tools, .schedule-tools, .tabs,
+  .schedule-section, .modal-overlay, .remove-debt { display: none !important; }
   .tab-panel[hidden] { display: block !important; }
-  details.schedule { display: none; }
-  .chart-tooltip { display: none !important; }
+  .chart-tooltip, .chart-hover { display: none !important; }
+  .debt-table input, .debt-table select { border-color: transparent; padding-left: 0; }
+
+  /* white-on-color components -> outlined, background-independent */
+  .step-num {
+    background: #fff; color: var(--navy); border: 2px solid var(--sky);
+  }
+  .order-num {
+    background: #fff; color: var(--navy); border: 2px solid var(--navy);
+    width: 22px; height: 22px;
+  }
+  .winner-badge { background: #fff; color: var(--good); border: 1.5px solid var(--good); }
+  .site-footer { background: none; color: var(--ink-2); padding: 14px 0 0; border-top: 2px solid var(--hairline); }
+  .site-footer .gem-house { display: none; }
+  .footer-name { color: var(--navy); }
+  .footer-x { color: var(--sky); }
+  .disclaimer { color: var(--ink-2); }
+
+  /* keep tinted panels tinted where the browser allows it (text is dark
+     either way, so nothing becomes unreadable if backgrounds are skipped) */
+  .kpi, .kpi-hero, .callout, .strategy-blurb, .budget-line, .learn-verdict,
+  .schedule-table tr.payoff-row td, .warnings, .method-card {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  /* glyph-safe winner marker: plain text instead of the ✓ character */
+  .metric-table td.best::after { content: " (best)"; font-weight: 600; font-size: 12px; }
+
+  /* sensible page-break behavior */
+  .kpi-row, .chart-box, .method-card, .callout, .compare-grid,
+  .order-table tr, .metric-table tr, .learn-col { break-inside: avoid; }
+  .panel-section h3, .card-head h2 { break-after: avoid; }
 }
