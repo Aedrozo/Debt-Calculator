@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debt Payoff Calculator | Gem Home Team Mortgage Lending</title>
+<meta name="description" content="Free debt payoff calculator from Gem Home Team Mortgage Lending × NEO Home Loans. Compare the debt snowball and debt avalanche methods side by side, add extra payments, and find your debt-free date.">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 12 L8 48 L20 48 L20 88 Q20 92 24 92 L76 92 Q80 92 80 88 L80 48 L92 48 Z' fill='%231d3543'/%3E%3Crect x='41' y='57' width='18' height='18' rx='2' transform='rotate(45 50 66)' fill='%233fb3e5'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap logo-lockup" role="img" aria-label="Gem Home Team Mortgage Lending, in partnership with NEO Home Loans, powered by Better">
+    <!-- Gem Home Team mark -->
+    <div class="logo-gem">
+      <svg class="gem-house" viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M50 10 L7 47 L20 47 L20 86 Q20 92 26 92 L74 92 Q80 92 80 86 L80 47 L93 47 Z"
+              fill="#1d3543" stroke="#1d3543" stroke-width="6" stroke-linejoin="round"/>
+        <rect x="41.5" y="58.5" width="17" height="17" rx="2.5"
+              transform="rotate(45 50 67)" fill="#3fb3e5"/>
+      </svg>
+      <div class="gem-words">
+        <span class="gem-name">GEM HOME TEAM</span>
+        <span class="gem-tag">MORTGAGE LENDING</span>
+      </div>
+    </div>
+
+    <span class="logo-x" aria-hidden="true">&times;</span>
+
+    <!-- NEO Home Loans mark -->
+    <div class="logo-neo">
+      <div class="neo-row">
+        <svg class="neo-badge" viewBox="0 0 100 100" aria-hidden="true">
+          <path d="M33 6 L67 6 Q73 6 76 11 L94 44 Q97 50 94 56 L76 89 Q73 94 67 94 L33 94 Q27 94 24 89 L6 56 Q3 50 6 44 L24 11 Q27 6 33 6 Z"
+                fill="#15222c"/>
+          <path d="M27 33 L48 50 L27 67 Z" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M73 33 L52 50 L73 67 Z" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round"/>
+        </svg>
+        <div class="neo-words">
+          <span class="neo-name">NEO</span>
+          <span class="neo-tag">HOME LOANS</span>
+        </div>
+      </div>
+      <div class="neo-powered">powered by <strong>Better</strong></div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Debt Payoff Calculator</h1>
+    <p>See exactly when you'll be debt-free. Enter your debts once, then compare the
+    <strong>Debt Snowball</strong> and <strong>Debt Avalanche</strong> methods side by side —
+    including how much interest each one saves you and how much sooner you'll finish.</p>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <!-- ============ STEP 1: DEBTS ============ -->
+  <section class="card" id="debts-card" aria-labelledby="debts-title">
+    <div class="card-head">
+      <h2 id="debts-title"><span class="step-num">1</span> Enter Your Debts</h2>
+      <p class="card-sub">List every debt you want in the plan — credit cards, auto loans, student loans,
+      personal loans, medical bills. Find the balance, APR, and minimum payment on each statement.</p>
+    </div>
+
+    <div class="table-scroll">
+      <table class="debt-table" id="debt-table">
+        <thead>
+          <tr>
+            <th scope="col">Debt name</th>
+            <th scope="col">Type</th>
+            <th scope="col">Current balance</th>
+            <th scope="col">Interest rate (APR&nbsp;%)</th>
+            <th scope="col">Minimum monthly payment</th>
+            <th scope="col"><span class="visually-hidden">Remove</span></th>
+          </tr>
+        </thead>
+        <tbody id="debt-rows"></tbody>
+        <tfoot>
+          <tr class="totals-row">
+            <td colspan="2">Totals</td>
+            <td id="total-balance">$0</td>
+            <td id="avg-apr" title="Balance-weighted average APR">—</td>
+            <td id="total-min">$0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="debt-actions">
+      <button type="button" class="btn btn-primary" id="add-debt">+ Add a debt</button>
+      <button type="button" class="btn btn-ghost" id="load-sample">Load example debts</button>
+      <button type="button" class="btn btn-ghost btn-danger" id="clear-debts">Clear all</button>
+    </div>
+    <div id="debt-warnings" class="warnings" role="alert"></div>
+  </section>
+
+  <!-- ============ STEP 2: PAYMENT PLAN ============ -->
+  <section class="card" id="plan-card" aria-labelledby="plan-title">
+    <div class="card-head">
+      <h2 id="plan-title"><span class="step-num">2</span> Build Your Payment Plan</h2>
+      <p class="card-sub">Even a small extra payment makes a big difference. Every dollar above your
+      minimums goes straight at the target debt for your chosen method.</p>
+    </div>
+
+    <div class="plan-grid">
+      <label class="field">
+        <span class="field-label">Extra payment every month</span>
+        <span class="input-money"><span class="prefix">$</span>
+          <input type="number" id="extra-monthly" min="0" step="10" value="100" inputmode="decimal">
+        </span>
+        <span class="field-hint">On top of all your minimum payments</span>
+      </label>
+
+      <label class="field">
+        <span class="field-label">One-time extra payment</span>
+        <span class="input-money"><span class="prefix">$</span>
+          <input type="number" id="onetime-amount" min="0" step="50" value="0" inputmode="decimal">
+        </span>
+        <span class="field-hint">Tax refund, bonus, gift — applied once</span>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Apply the one-time payment in</span>
+        <select id="onetime-month"></select>
+        <span class="field-hint">Which month the lump sum lands</span>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Plan start month</span>
+        <input type="month" id="start-month">
+        <span class="field-hint">First payment month of the plan</span>
+      </label>
+    </div>
+
+    <label class="check-field">
+      <input type="checkbox" id="rollover" checked>
+      <span><strong>Roll over payments (recommended).</strong> When a debt is paid off, keep paying the
+      same total every month — its old payment "snowballs" onto the next debt instead of leaving the plan.</span>
+    </label>
+
+    <div class="budget-line" id="budget-line"></div>
+  </section>
+
+  <!-- ============ STEP 3: RESULTS ============ -->
+  <section class="card" id="results-card" aria-labelledby="results-title">
+    <div class="card-head results-head">
+      <h2 id="results-title"><span class="step-num">3</span> Your Results</h2>
+      <div class="results-tools">
+        <button type="button" class="btn btn-ghost" id="print-btn">🖨 Print / Save PDF</button>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Payoff method">
+      <button class="tab" role="tab" id="tab-snowball" aria-controls="panel-snowball" aria-selected="false">❄️ Debt Snowball</button>
+      <button class="tab" role="tab" id="tab-avalanche" aria-controls="panel-avalanche" aria-selected="false">⛰ Debt Avalanche</button>
+      <button class="tab is-active" role="tab" id="tab-compare" aria-controls="panel-compare" aria-selected="true">⚖️ Compare Side-by-Side</button>
+    </div>
+
+    <div id="panel-snowball" class="tab-panel" role="tabpanel" aria-labelledby="tab-snowball" hidden></div>
+    <div id="panel-avalanche" class="tab-panel" role="tabpanel" aria-labelledby="tab-avalanche" hidden></div>
+    <div id="panel-compare" class="tab-panel" role="tabpanel" aria-labelledby="tab-compare"></div>
+  </section>
+
+  <!-- ============ EDUCATION ============ -->
+  <section class="card" id="learn-card" aria-labelledby="learn-title">
+    <div class="card-head">
+      <h2 id="learn-title">Snowball vs. Avalanche — Which Should You Choose?</h2>
+    </div>
+    <div class="learn-grid">
+      <div class="learn-col">
+        <h3>❄️ The Debt Snowball</h3>
+        <p>Pay minimums on everything, then attack the <strong>smallest balance</strong> first.
+        When it's gone, roll its payment onto the next-smallest balance — the payment
+        "snowballs" as each debt disappears.</p>
+        <p><strong>Why people love it:</strong> quick wins. Knocking out whole accounts early keeps you
+        motivated, and studies show people who see progress fast are more likely to stick with the plan.
+        This is the method made famous by Dave Ramsey.</p>
+      </div>
+      <div class="learn-col">
+        <h3>⛰ The Debt Avalanche</h3>
+        <p>Pay minimums on everything, then attack the <strong>highest interest rate</strong> first.
+        When it's gone, roll its payment onto the next-highest rate.</p>
+        <p><strong>Why people love it:</strong> it's the mathematically optimal order. Because your most
+        expensive debt dies first, the avalanche always pays the least total interest and is never slower
+        than the snowball.</p>
+      </div>
+      <div class="learn-col learn-verdict">
+        <h3>The honest answer</h3>
+        <p>The best method is <strong>the one you'll actually finish</strong>. The comparison tab above shows
+        the exact dollar-and-month difference for <em>your</em> debts — for many people it's small, and the
+        motivation from snowball wins are worth more than the interest saved by the avalanche. If the
+        difference is large, the avalanche may be worth the discipline.</p>
+        <p>Either way, the biggest lever is the <strong>extra payment</strong> — try changing it above and
+        watch both dates move.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-brand">
+      <svg class="gem-house" viewBox="0 0 100 100" aria-hidden="true" width="34" height="34">
+        <path d="M50 10 L7 47 L20 47 L20 86 Q20 92 26 92 L74 92 Q80 92 80 86 L80 47 L93 47 Z"
+              fill="#ffffff" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/>
+        <rect x="41.5" y="58.5" width="17" height="17" rx="2.5"
+              transform="rotate(45 50 67)" fill="#3fb3e5"/>
+      </svg>
+      <div>
+        <div class="footer-name">GEM HOME TEAM <span class="footer-x">×</span> NEO HOME LOANS</div>
+        <div class="footer-tag">Mortgage Lending &middot; powered by Better</div>
+      </div>
+    </div>
+    <p class="disclaimer">This calculator is provided for educational purposes only and is not financial
+    advice. Estimates assume fixed interest rates, monthly compounding, and on-time payments; your actual
+    payoff will vary with rate changes, fees, and payment timing. Talk with the Gem Home Team about how a
+    home purchase or refinance fits into your full financial picture.</p>
+  </div>
+</footer>
+
+<script src="js/engine.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
