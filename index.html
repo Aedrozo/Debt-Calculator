@@ -151,6 +151,7 @@
     <div class="card-head results-head">
       <h2 id="results-title"><span class="step-num">3</span> Your Results</h2>
       <div class="results-tools">
+        <button type="button" class="btn btn-primary" id="gameplan-btn">📋 Save Your Game Plan</button>
         <button type="button" class="btn btn-ghost" id="print-btn">🖨 Print / Save PDF</button>
       </div>
     </div>
@@ -223,6 +224,41 @@
     home purchase or refinance fits into your full financial picture.</p>
   </div>
 </footer>
+
+<!-- Game plan dialog -->
+<div class="modal-overlay" id="gameplan-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="gp-title">
+    <button type="button" class="modal-close" id="gp-close" aria-label="Close">✕</button>
+    <h3 id="gp-title">📋 Your Debt-Free Game Plan</h3>
+    <div id="gp-body">
+      <p class="gp-lead">Turn these numbers into a simple step-by-step plan you can print,
+      save, or share — with your payoff order, milestone dates, and marching orders for every month.</p>
+
+      <fieldset class="gp-methods">
+        <legend class="field-label">Which method will you follow?</legend>
+        <label class="gp-method" id="gp-method-snowball">
+          <input type="radio" name="gp-method" value="snowball">
+          <span><strong>❄️ Debt Snowball</strong><br><small>Smallest balance first — quick wins keep you motivated</small></span>
+        </label>
+        <label class="gp-method" id="gp-method-avalanche">
+          <input type="radio" name="gp-method" value="avalanche">
+          <span><strong>⛰ Debt Avalanche</strong><br><small>Highest rate first — the least total interest</small></span>
+        </label>
+      </fieldset>
+      <p class="gp-summary" id="gp-summary"></p>
+
+      <label class="field gp-name">
+        <span class="field-label">Name on the plan <span class="gp-optional">(optional)</span></span>
+        <input type="text" id="gp-client-name" placeholder="e.g. The Johnson Family" maxlength="60" autocomplete="off">
+      </label>
+
+      <div class="gp-actions">
+        <button type="button" class="btn btn-primary" id="gp-print">🖨 Print / Save as PDF</button>
+        <button type="button" class="btn btn-ghost" id="gp-download">⬇ Download the plan</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="js/engine.js"></script>
 <script src="js/charts.js"></script>

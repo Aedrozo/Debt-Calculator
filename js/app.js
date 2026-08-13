@@ -271,6 +271,16 @@
 
   document.getElementById('print-btn').addEventListener('click', function () { window.print(); });
 
+  // arrow-key navigation between tabs
+  document.querySelector('.tabs').addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    var i = TABS.indexOf(activeTab);
+    var next = TABS[(i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length];
+    setTab(next);
+    document.getElementById('tab-' + next).focus();
+  });
+
   /* ---------------- recalc pipeline ---------------- */
 
   var recalcTimer = null;
@@ -616,6 +626,233 @@
           '<td' + (r[4] === 1 ? ' class="best"' : '') + '>' + r[2] + '</td>' +
           '<td>' + r[3] + '</td></tr>';
       }).join('') + '</tbody></table>';
+  }
+
+  /* ---------------- game plan ---------------- */
+
+  var gpModal = document.getElementById('gameplan-modal');
+  var gpBody = document.getElementById('gp-body');
+  var gpBodyHtml = gpBody.innerHTML; // pristine form, restored on each open
+
+  document.getElementById('gameplan-btn').addEventListener('click', openGamePlan);
+  gpModal.addEventListener('click', function (e) {
+    if (e.target === gpModal || e.target.id === 'gp-close' || e.target.closest('#gp-close')) closeGamePlan();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !gpModal.hidden) closeGamePlan();
+  });
+
+  function closeGamePlan() { gpModal.hidden = true; }
+
+  function openGamePlan() {
+    gpBody.innerHTML = gpBodyHtml;
+    gpModal.hidden = false;
+
+    if (!lastResults || !cleanDebts().length) {
+      gpBody.innerHTML = '<p class="gp-empty">Add your debts in step 1 first — then come back and ' +
+        'we’ll turn your numbers into a step-by-step game plan you can save.</p>';
+      return;
+    }
+    var snow = lastResults.snowball, aval = lastResults.avalanche;
+    if (snow.neverPayoff || aval.neverPayoff) {
+      gpBody.innerHTML = '<p class="gp-empty">⚠️ With the current payments, this plan never pays off — ' +
+        'your payments don’t keep up with interest. Increase the extra monthly payment in step 2, ' +
+        'then save your game plan.</p>';
+      return;
+    }
+
+    // Recommend the cheaper method; on a tie, snowball (motivation wins ties).
+    var iDiff = snow.totalInterest - aval.totalInterest;
+    var recommended = iDiff > 0.5 ? 'avalanche' : 'snowball';
+    var badge = '<span class="gp-badge">RECOMMENDED</span>';
+    document.querySelector('#gp-method-' + recommended + ' strong').insertAdjacentHTML('beforeend', badge);
+    var radio = document.querySelector('#gp-method-' + recommended + ' input');
+    radio.checked = true;
+    updateGpSummary();
+
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="gp-method"]'), function (r) {
+      r.addEventListener('change', updateGpSummary);
+    });
+    document.getElementById('gp-print').addEventListener('click', function () { emitGamePlan('print'); });
+    document.getElementById('gp-download').addEventListener('click', function () { emitGamePlan('download'); });
+  }
+
+  function chosenGpMethod() {
+    var r = document.querySelector('input[name="gp-method"]:checked');
+    return r ? r.value : 'snowball';
+  }
+
+  function updateGpSummary() {
+    var run = lastResults[chosenGpMethod()];
+    var saved = savingsVsMinimum(run, lastResults.minimum);
+    document.getElementById('gp-summary').innerHTML =
+      'Debt-free <strong>' + fmtMonthLong(run.monthsToPayoff) + '</strong> · ' +
+      money(run.totalInterest) + ' total interest' +
+      (saved.interest != null
+        ? ' · saves <strong>' + money(saved.interest) + '</strong> and <strong>' +
+          fmtDuration(saved.months) + '</strong> vs. minimum payments'
+        : '');
+  }
+
+  function emitGamePlan(mode) {
+    var method = chosenGpMethod();
+    var clientName = String(document.getElementById('gp-client-name').value || '').trim();
+    var html = buildGamePlanHtml(method, clientName);
+    if (mode === 'download') {
+      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'my-debt-free-game-plan.html';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    } else {
+      var w = window.open('', '_blank');
+      if (!w) { alert('Please allow pop-ups to print your game plan, or use “Download the plan” instead.'); return; }
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+      setTimeout(function () { try { w.print(); } catch (e) { /* user can print manually */ } }, 400);
+    }
+  }
+
+  /** Self-contained branded HTML document — safe to save, email, or print. */
+  function buildGamePlanHtml(method, clientName) {
+    var debts = cleanDebts();
+    var run = lastResults[method];
+    var min = lastResults.minimum;
+    var meta = METHOD_META[method];
+    var saved = savingsVsMinimum(run, min);
+    var totalBal = debts.reduce(function (s, d) { return s + d.balance; }, 0);
+    var totalMin = debts.reduce(function (s, d) { return s + d.minPayment; }, 0);
+    var budget = totalMin + state.extraMonthly;
+    var byId = {};
+    debts.forEach(function (d) { byId[d.id] = d; });
+
+    var logo =
+      '<div class="lockup">' +
+      '<div class="gem"><svg viewBox="0 0 100 100" width="46" height="46" aria-hidden="true">' +
+      '<path d="M50 10 L7 47 L20 47 L20 86 Q20 92 26 92 L74 92 Q80 92 80 86 L80 47 L93 47 Z" fill="#1d3543" stroke="#1d3543" stroke-width="6" stroke-linejoin="round"/>' +
+      '<rect x="41.5" y="58.5" width="17" height="17" rx="2.5" transform="rotate(45 50 67)" fill="#3fb3e5"/></svg>' +
+      '<div><div class="gname">GEM HOME TEAM</div><div class="gtag">MORTGAGE LENDING</div></div></div>' +
+      '<span class="lx">×</span>' +
+      '<div class="neo"><svg viewBox="0 0 100 100" width="38" height="38" aria-hidden="true">' +
+      '<path d="M33 6 L67 6 Q73 6 76 11 L94 44 Q97 50 94 56 L76 89 Q73 94 67 94 L33 94 Q27 94 24 89 L6 56 Q3 50 6 44 L24 11 Q27 6 33 6 Z" fill="#15222c"/>' +
+      '<path d="M27 33 L48 50 L27 67 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>' +
+      '<path d="M73 33 L52 50 L73 67 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/></svg>' +
+      '<div><div class="nname">NEO</div><div class="ntag">HOME LOANS</div><div class="npow">powered by <b>Better</b></div></div></div>' +
+      '</div>';
+
+    // Milestones: one step per debt in payoff order, with the money aimed at it.
+    var rolled = 0;
+    var steps = run.payoffOrder.map(function (p, i) {
+      var d = byId[p.id] || { minPayment: 0, balance: 0, apr: 0 };
+      var attack = state.rollover ? (d.minPayment + state.extraMonthly + rolled) : (d.minPayment + state.extraMonthly);
+      rolled += d.minPayment;
+      var next = run.payoffOrder[i + 1];
+      return '<div class="step">' +
+        '<div class="step-check">☐</div>' +
+        '<div class="step-body">' +
+        '<div class="step-title">Target #' + (i + 1) + ': <strong>' + esc(p.name) + '</strong>' +
+        '<span class="step-date">paid off ' + fmtMonth(p.month) + '</span></div>' +
+        '<div class="step-detail">' + money(d.balance) + ' at ' + d.apr + '% APR — aim about <strong>' +
+        money(Math.round(attack)) + '/mo</strong> at this debt while paying minimums on the rest.' +
+        (next
+          ? (state.rollover
+            ? ' When it’s gone, roll its ' + money(d.minPayment) + '/mo into <strong>' + esc(next.name) + '</strong>.'
+            : ' Then move on to <strong>' + esc(next.name) + '</strong>.')
+          : ' This is your last debt — pay it off and you’re <strong>DEBT-FREE!</strong> 🎉') +
+        '</div></div></div>';
+    }).join('');
+
+    var oneTimeNote = state.oneTimeAmount > 0
+      ? '<li>Your plan includes a one-time extra payment of <strong>' + money(state.oneTimeAmount) +
+        '</strong> in ' + fmtMonthLong(state.oneTimeMonth) + ' — when it arrives, send all of it at your current target debt.</li>'
+      : '';
+
+    return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>My Debt-Free Game Plan — Gem Home Team</title><style>' +
+      'body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#16242e;margin:0;background:#fff;line-height:1.55}' +
+      '.page{max-width:760px;margin:0 auto;padding:36px 28px}' +
+      '.lockup{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding-bottom:18px;border-bottom:2px solid #e2e7ea}' +
+      '.gem,.neo{display:flex;align-items:center;gap:10px}' +
+      '.gname{font-weight:800;font-size:19px;color:#1d3543;letter-spacing:.02em}' +
+      '.gtag{font-size:9px;font-weight:600;color:#3fb3e5;letter-spacing:.4em}' +
+      '.lx{color:#3fb3e5;font-size:18px;font-weight:600}' +
+      '.nname{font-weight:800;font-size:17px;color:#15222c;letter-spacing:.14em;line-height:1}' +
+      '.ntag{font-size:8px;font-weight:600;color:#15222c;letter-spacing:.32em}' +
+      '.npow{font-size:10px;color:#15222c}' +
+      'h1{font-size:27px;color:#1d3543;margin:26px 0 2px}' +
+      '.sub{color:#4d5e69;margin:0 0 22px}' +
+      '.hero{background:#e3f4fc;border-radius:12px;padding:18px 22px;margin:0 0 22px;display:flex;gap:26px;flex-wrap:wrap}' +
+      '.hero div{min-width:130px}.hero .lab{font-size:11px;font-weight:600;color:#4d5e69;text-transform:uppercase;letter-spacing:.05em}' +
+      '.hero .val{font-size:21px;font-weight:800;color:#1d3543}.hero .good{color:#0c7a3c}' +
+      'h2{font-size:17px;color:#1d3543;margin:26px 0 10px}' +
+      'table{width:100%;border-collapse:collapse;font-size:13.5px}' +
+      'th,td{padding:7px 10px;border-bottom:1px solid #e2e7ea;text-align:right}' +
+      'th:first-child,td:first-child{text-align:left}' +
+      'thead th{font-size:11px;color:#8a949b;text-transform:uppercase;letter-spacing:.05em}' +
+      'ol.rules{padding-left:20px;margin:0}ol.rules li{margin-bottom:8px}' +
+      '.step{display:flex;gap:12px;border-left:3px solid #3fb3e5;background:#f6f8f9;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:10px;page-break-inside:avoid}' +
+      '.step-check{font-size:20px;color:#1d3543}' +
+      '.step-title{font-size:15px}.step-date{float:right;color:#0c7a3c;font-weight:700;font-size:13px}' +
+      '.step-detail{font-size:13.5px;color:#4d5e69;margin-top:2px}' +
+      'ul.tips{padding-left:20px;margin:0}ul.tips li{margin-bottom:7px;font-size:14px}' +
+      '.foot{margin-top:30px;padding-top:14px;border-top:2px solid #e2e7ea;font-size:11px;color:#8a949b}' +
+      '@media print{.page{padding:12px 0}}' +
+      '</style></head><body><div class="page">' +
+      logo +
+      '<h1>' + meta.icon + ' My Debt-Free Game Plan</h1>' +
+      '<p class="sub">' + (clientName ? 'Prepared for <strong>' + esc(clientName) + '</strong> · ' : '') +
+      'The ' + meta.label + ' method · Created ' + MONTHS_LONG[new Date().getMonth()] + ' ' +
+      new Date().getDate() + ', ' + new Date().getFullYear() + ' with the Gem Home Team Debt Payoff Calculator</p>' +
+
+      '<div class="hero">' +
+      '<div><div class="lab">Debt-free date</div><div class="val">' + fmtMonthLong(run.monthsToPayoff) + '</div></div>' +
+      '<div><div class="lab">Total debt today</div><div class="val">' + money(totalBal) + '</div></div>' +
+      '<div><div class="lab">Monthly commitment</div><div class="val">' + money(budget) + '</div></div>' +
+      (saved.interest != null
+        ? '<div><div class="lab">You save</div><div class="val good">' + money(saved.interest) + '</div>' +
+          '<div class="lab" style="text-transform:none;letter-spacing:0">+ ' + fmtDuration(saved.months) + ' sooner vs. minimums</div></div>'
+        : '') +
+      '</div>' +
+
+      '<h2>The 3 rules of your plan</h2><ol class="rules">' +
+      '<li><strong>Never miss a minimum.</strong> Pay the minimum on every debt, every month, on time.</li>' +
+      '<li><strong>Attack one debt at a time.</strong> Send every extra dollar (' + money(state.extraMonthly) +
+      '/mo in your plan) at your current target — ' +
+      (method === 'snowball' ? 'the smallest balance' : 'the highest interest rate') + ' first.</li>' +
+      '<li><strong>Never shrink your payment.</strong> When a debt is gone, keep paying the same ' +
+      money(budget) + ' total every month — the freed-up money rolls onto the next target. That’s where the magic is.</li>' +
+      '</ol>' +
+
+      '<h2>Your debts (' + debts.length + ')</h2>' +
+      '<table><thead><tr><th>Debt</th><th>Balance</th><th>APR</th><th>Minimum/mo</th></tr></thead><tbody>' +
+      debts.map(function (d) {
+        return '<tr><td>' + esc(d.name) + '</td><td>' + money(d.balance) + '</td><td>' +
+          d.apr + '%</td><td>' + money(d.minPayment) + '</td></tr>';
+      }).join('') +
+      '<tr><td><strong>Total</strong></td><td><strong>' + money(totalBal) + '</strong></td><td></td><td><strong>' +
+      money(totalMin) + '</strong></td></tr></tbody></table>' +
+
+      '<h2>Your marching orders — check them off as you go</h2>' + steps +
+
+      '<h2>Tips to stay on track</h2><ul class="tips">' +
+      '<li><strong>Automate it.</strong> Set every minimum on autopay, plus an automatic ' +
+      money(state.extraMonthly) + ' transfer to your target debt each payday.</li>' +
+      oneTimeNote +
+      '<li><strong>Windfalls go to the target.</strong> Tax refunds, bonuses, side income — every surprise dollar shortens this plan.</li>' +
+      '<li><strong>Don’t add new debt.</strong> Pause the cards you’re paying off; one new swipe restarts the climb.</li>' +
+      '<li><strong>Celebrate every milestone.</strong> Each checked box above is a real win — small (free) celebrations keep the streak alive.</li>' +
+      '<li><strong>Ask about your bigger picture.</strong> If you own a home or plan to buy one, talk with the Gem Home Team — ' +
+      'sometimes a refinance or consolidation changes this math entirely.</li>' +
+      '</ul>' +
+
+      '<div class="foot"><strong>GEM HOME TEAM × NEO HOME LOANS</strong> · Mortgage Lending · powered by Better<br>' +
+      'This plan is an estimate for educational purposes only and is not financial advice. It assumes fixed rates, ' +
+      'monthly compounding, and on-time payments; actual results vary with rate changes, fees, and payment timing.</div>' +
+      '</div></body></html>';
   }
 
   /* ---------------- CSV export ---------------- */

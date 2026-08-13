@@ -19,6 +19,9 @@ including exactly how much interest each one saves and how much sooner you'll be
 - **Full results** — debt-free date, payoff time, total interest, total paid, interest
   and time saved, payoff order with dates, and a complete month-by-month amortization
   schedule for every plan
+- **Save Your Game Plan** — a personalized, branded action plan clients can print or
+  download: debt-free date, monthly commitment, the 3 rules of the plan, every target
+  in order with check-off milestones and roll-over amounts, plus stay-on-track tips
 - **Interactive charts** — remaining balance over time with hover tooltips
 - **CSV export** of any schedule and a print/save-to-PDF view
 - **Warnings** when a minimum payment doesn't cover a debt's monthly interest
