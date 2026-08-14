@@ -341,7 +341,7 @@
           ? ', plus a one-time <strong>' + money(state.oneTimeAmount) + '</strong> in ' + fmtMonth(state.oneTimeMonth)
           : '');
     } else {
-      budgetEl.innerHTML = 'Add your debts above to see your plan.';
+      budgetEl.innerHTML = 'Add your debts below to see your plan.';
     }
 
     // warnings
@@ -660,7 +660,7 @@
     gpModal.hidden = false;
 
     if (!lastResults || !cleanDebts().length) {
-      gpBody.innerHTML = '<p class="gp-empty">Add your debts in step 1 first — then come back and ' +
+      gpBody.innerHTML = '<p class="gp-empty">Add your debts in step 2 first — then come back and ' +
         'we’ll turn your numbers into a step-by-step game plan you can save.</p>';
       return;
     }

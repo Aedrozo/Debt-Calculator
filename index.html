@@ -73,51 +73,10 @@
 
 <main class="wrap">
 
-  <!-- ============ STEP 1: DEBTS ============ -->
-  <section class="card" id="debts-card" aria-labelledby="debts-title">
-    <div class="card-head">
-      <h2 id="debts-title"><span class="step-num">1</span> Enter Your Debts</h2>
-      <p class="card-sub">List every debt you want in the plan — credit cards, auto loans, student loans,
-      personal loans, medical bills. Find the balance, APR, and minimum payment on each statement.</p>
-    </div>
-
-    <div class="table-scroll">
-      <table class="debt-table" id="debt-table">
-        <thead>
-          <tr>
-            <th scope="col">Debt name</th>
-            <th scope="col">Type</th>
-            <th scope="col">Current balance</th>
-            <th scope="col">Interest rate (APR&nbsp;%)</th>
-            <th scope="col">Minimum monthly payment</th>
-            <th scope="col"><span class="visually-hidden">Remove</span></th>
-          </tr>
-        </thead>
-        <tbody id="debt-rows"></tbody>
-        <tfoot>
-          <tr class="totals-row">
-            <td colspan="2">Totals</td>
-            <td id="total-balance">$0</td>
-            <td id="avg-apr" title="Balance-weighted average APR">—</td>
-            <td id="total-min">$0</td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-
-    <div class="debt-actions">
-      <button type="button" class="btn btn-primary" id="add-debt">+ Add a debt</button>
-      <button type="button" class="btn btn-ghost" id="load-sample">Load example debts</button>
-      <button type="button" class="btn btn-ghost btn-danger" id="clear-debts">Clear all</button>
-    </div>
-    <div id="debt-warnings" class="warnings" role="alert"></div>
-  </section>
-
-  <!-- ============ STEP 2: PAYMENT PLAN ============ -->
+  <!-- ============ STEP 1: PAYMENT PLAN ============ -->
   <section class="card" id="plan-card" aria-labelledby="plan-title">
     <div class="card-head">
-      <h2 id="plan-title"><span class="step-num">2</span> Build Your Payment Plan</h2>
+      <h2 id="plan-title"><span class="step-num">1</span> Build Your Payment Plan</h2>
       <p class="card-sub">Even a small extra payment makes a big difference. Every dollar above your
       minimums goes straight at the target debt for your chosen method.</p>
     </div>
@@ -159,6 +118,47 @@
     </label>
 
     <div class="budget-line" id="budget-line"></div>
+  </section>
+
+  <!-- ============ STEP 2: DEBTS ============ -->
+  <section class="card" id="debts-card" aria-labelledby="debts-title">
+    <div class="card-head">
+      <h2 id="debts-title"><span class="step-num">2</span> Enter Your Debts</h2>
+      <p class="card-sub">List every debt you want in the plan — credit cards, auto loans, student loans,
+      personal loans, medical bills. Find the balance, APR, and minimum payment on each statement.</p>
+    </div>
+
+    <div class="table-scroll">
+      <table class="debt-table" id="debt-table">
+        <thead>
+          <tr>
+            <th scope="col">Debt name</th>
+            <th scope="col">Type</th>
+            <th scope="col">Current balance</th>
+            <th scope="col">Interest rate (APR&nbsp;%)</th>
+            <th scope="col">Minimum monthly payment</th>
+            <th scope="col"><span class="visually-hidden">Remove</span></th>
+          </tr>
+        </thead>
+        <tbody id="debt-rows"></tbody>
+        <tfoot>
+          <tr class="totals-row">
+            <td colspan="2">Totals</td>
+            <td id="total-balance">$0</td>
+            <td id="avg-apr" title="Balance-weighted average APR">—</td>
+            <td id="total-min">$0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="debt-actions">
+      <button type="button" class="btn btn-primary" id="add-debt">+ Add a debt</button>
+      <button type="button" class="btn btn-ghost" id="load-sample">Load example debts</button>
+      <button type="button" class="btn btn-ghost btn-danger" id="clear-debts">Clear all</button>
+    </div>
+    <div id="debt-warnings" class="warnings" role="alert"></div>
   </section>
 
   <!-- ============ STEP 3: RESULTS ============ -->

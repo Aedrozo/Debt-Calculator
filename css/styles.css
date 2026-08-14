@@ -125,6 +125,10 @@ main.wrap { padding: 34px 20px 20px; display: flex; flex-direction: column; gap:
   outline: 2px solid var(--sky); outline-offset: 1px; border-color: var(--sky);
 }
 .debt-table input[type="number"] { text-align: right; }
+/* no spinner arrows on any numeric field */
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .debt-table .col-name { min-width: 160px; }
 .debt-table .col-type { min-width: 130px; }
 .remove-debt {
