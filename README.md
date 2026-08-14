@@ -41,8 +41,9 @@ open index.html
 python3 -m http.server 8000   # → http://localhost:8000
 ```
 
-Deployment is automatic: every push to the default branch publishes to GitHub Pages
-via `.github/workflows/deploy-pages.yml`.
+Deployment is automatic: every push to `main` publishes to GitHub Pages via
+`.github/workflows/deploy-pages.yml` (the Pages environment only accepts
+deployments from `main`).
 
 ## How the math works
 
