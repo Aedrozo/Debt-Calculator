@@ -92,6 +92,13 @@
       state.oneTimeAmount = +data.oneTimeAmount || 0;
       state.oneTimeMonth = +data.oneTimeMonth || 1;
       state.startMonth = data.startMonth || defaultStartMonth();
+      // Keep the plan current as time passes: a saved start month that is
+      // now in the past rolls forward to this month, so every date on the
+      // page (and in saved game plans) stays fresh on each visit.
+      // "YYYY-MM" strings compare correctly as text.
+      if (state.startMonth < defaultStartMonth()) {
+        state.startMonth = defaultStartMonth();
+      }
       state.rollover = data.rollover !== false;
       return true;
     } catch (e) { return false; }
@@ -825,14 +832,14 @@
     var logo =
       '<div class="lockup">' +
       '<div class="gem"><svg viewBox="0 0 100 100" width="46" height="46" aria-hidden="true">' +
-      '<path d="M50 10 L7 47 L20 47 L20 86 Q20 92 26 92 L74 92 Q80 92 80 86 L80 47 L93 47 Z" fill="#1d3543" stroke="#1d3543" stroke-width="6" stroke-linejoin="round"/>' +
-      '<rect x="41.5" y="58.5" width="17" height="17" rx="2.5" transform="rotate(45 50 67)" fill="#3fb3e5"/></svg>' +
+      '<path d="M50 10 L7 47 L20 47 L20 86 Q20 92 26 92 L74 92 Q80 92 80 86 L80 47 L93 47 Z" fill="#16323f" stroke="#16323f" stroke-width="6" stroke-linejoin="round"/>' +
+      '<rect x="41.5" y="58.5" width="17" height="17" rx="3" transform="rotate(45 50 67)" fill="#3fb3e5"/></svg>' +
       '<div><div class="gname">GEM HOME TEAM</div><div class="gtag">MORTGAGE LENDING</div></div></div>' +
       '<span class="lx">×</span>' +
       '<div class="neo"><svg viewBox="0 0 100 100" width="38" height="38" aria-hidden="true">' +
       '<path d="M33 6 L67 6 Q73 6 76 11 L94 44 Q97 50 94 56 L76 89 Q73 94 67 94 L33 94 Q27 94 24 89 L6 56 Q3 50 6 44 L24 11 Q27 6 33 6 Z" fill="#15222c"/>' +
-      '<path d="M27 33 L48 50 L27 67 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>' +
-      '<path d="M73 33 L52 50 L73 67 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/></svg>' +
+      '<path d="M26 32 L57 50 L26 68 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>' +
+      '<path d="M74 32 L43 50 L74 68 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/></svg>' +
       '<div><div class="nname">NEO</div><div class="ntag">HOME LOANS</div><div class="npow">powered by <b>Better</b></div></div></div>' +
       '</div>';
 
