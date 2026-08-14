@@ -1,5 +1,7 @@
 # Debt Payoff Calculator
 
+**Live site:** https://aedrozo.github.io/Debt-Calculator/
+
 A free debt payoff calculator for **Gem Home Team Mortgage Lending × NEO Home Loans**
 (powered by Better). Enter your debts once and instantly compare the two most popular
 payoff strategies — the **Debt Snowball** and the **Debt Avalanche** — side by side,
@@ -39,7 +41,8 @@ open index.html
 python3 -m http.server 8000   # → http://localhost:8000
 ```
 
-Deploys as-is to GitHub Pages, Netlify, or any static host.
+Deployment is automatic: every push to the default branch publishes to GitHub Pages
+via `.github/workflows/deploy-pages.yml`.
 
 ## How the math works
 
