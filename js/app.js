@@ -296,11 +296,33 @@
   wirePlanMoneyField(oneAmtEl, 'oneTimeAmount');
   var oneMonthEl = bindPlanInput('onetime-month', 'oneTimeMonth', function (v) { return Math.max(1, +v || 1); });
   var startEl = document.getElementById('start-month');
-  startEl.addEventListener('input', function () {
+  startEl.addEventListener('change', function () {
     if (startEl.value) state.startMonth = startEl.value;
     fillOneTimeMonths();
     scheduleRecalc();
   });
+
+  /** Start-month dropdown: this month plus the next 23, so nobody has to
+      type a date. A persisted month outside that window stays selectable. */
+  function fillStartMonths() {
+    var base = defaultStartMonth().split('-');
+    var options = [];
+    for (var i = 0; i < 24; i++) {
+      var d = new Date(+base[0], +base[1] - 1 + i, 1);
+      var val = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      options.push(val);
+    }
+    if (options.indexOf(state.startMonth) === -1) {
+      options.push(state.startMonth);
+      options.sort();
+    }
+    startEl.innerHTML = options.map(function (val) {
+      var parts = val.split('-');
+      var label = MONTHS_LONG[+parts[1] - 1] + ' ' + parts[0];
+      return '<option value="' + val + '"' + (val === state.startMonth ? ' selected' : '') + '>' +
+        label + '</option>';
+    }).join('');
+  }
   var rolloverEl = document.getElementById('rollover');
   rolloverEl.addEventListener('change', function () {
     state.rollover = rolloverEl.checked;
@@ -319,7 +341,7 @@
   function syncPlanInputs() {
     extraEl.value = state.extraMonthly.toLocaleString('en-US', { maximumFractionDigits: 2 });
     oneAmtEl.value = state.oneTimeAmount.toLocaleString('en-US', { maximumFractionDigits: 2 });
-    startEl.value = state.startMonth;
+    fillStartMonths();
     rolloverEl.checked = state.rollover;
     fillOneTimeMonths();
   }
