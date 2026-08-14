@@ -124,7 +124,14 @@ main.wrap { padding: 34px 20px 20px; display: flex; flex-direction: column; gap:
 .check-field input:focus-visible, .btn:focus-visible, .tab:focus-visible {
   outline: 2px solid var(--sky); outline-offset: 1px; border-color: var(--sky);
 }
-.debt-table input[type="number"] { text-align: right; }
+.debt-table input[data-format] { text-align: right; }
+
+/* dropdowns: one clean chevron instead of the native stacked arrows */
+select, .debt-table select, .field select {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%234d5e69' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center / 12px 8px;
+  padding-right: 32px;
+}
 /* no spinner arrows on any field, in any browser: number inputs,
    the month picker, and anything else that grows a spin button */
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }

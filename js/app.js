@@ -168,6 +168,30 @@
 
   var debtRowsEl = document.getElementById('debt-rows');
 
+  /* Formatted numeric fields: values display as "$8,500" or "24.99%", but
+     while a field is focused it shows the plain number for easy editing. */
+
+  function parseNumStr(s) {
+    var cleaned = String(s == null ? '' : s).replace(/[^0-9.]/g, '');
+    if (cleaned === '') return '';
+    var n = parseFloat(cleaned);
+    return isNaN(n) ? '' : String(n);
+  }
+
+  function fmtInputMoney(v) {
+    var n = parseFloat(v);
+    if (v === '' || v == null || isNaN(n)) return '';
+    return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  }
+
+  function fmtInputPct(v) {
+    var n = parseFloat(v);
+    if (v === '' || v == null || isNaN(n)) return '';
+    return n.toLocaleString('en-US', { maximumFractionDigits: 3 }) + '%';
+  }
+
+  var FIELD_FORMATS = { money: fmtInputMoney, pct: fmtInputPct };
+
   function renderDebtRows() {
     debtRowsEl.innerHTML = state.debts.map(function (d) {
       var typeOpts = DEBT_TYPES.map(function (t) {
@@ -176,22 +200,44 @@
       return '<tr data-id="' + d.id + '">' +
         '<td class="col-name"><input type="text" data-field="name" value="' + esc(d.name) + '" placeholder="e.g. Visa card" aria-label="Debt name"></td>' +
         '<td class="col-type"><select data-field="type" aria-label="Debt type">' + typeOpts + '</select></td>' +
-        '<td><input type="number" data-field="balance" value="' + esc(d.balance) + '" min="0" step="50" placeholder="0" inputmode="decimal" aria-label="Current balance in dollars"></td>' +
-        '<td><input type="number" data-field="apr" value="' + esc(d.apr) + '" min="0" max="120" step="0.1" placeholder="0.0" inputmode="decimal" aria-label="Annual interest rate percent"></td>' +
-        '<td><input type="number" data-field="minPayment" value="' + esc(d.minPayment) + '" min="0" step="5" placeholder="0" inputmode="decimal" aria-label="Minimum monthly payment in dollars"></td>' +
+        '<td><input type="text" data-field="balance" data-format="money" value="' + esc(fmtInputMoney(d.balance)) + '" placeholder="$0" inputmode="decimal" autocomplete="off" aria-label="Current balance in dollars"></td>' +
+        '<td><input type="text" data-field="apr" data-format="pct" value="' + esc(fmtInputPct(d.apr)) + '" placeholder="0%" inputmode="decimal" autocomplete="off" aria-label="Annual interest rate percent"></td>' +
+        '<td><input type="text" data-field="minPayment" data-format="money" value="' + esc(fmtInputMoney(d.minPayment)) + '" placeholder="$0" inputmode="decimal" autocomplete="off" aria-label="Minimum monthly payment in dollars"></td>' +
         '<td><button type="button" class="remove-debt" title="Remove this debt" aria-label="Remove ' + esc(d.name || 'debt') + '">✕</button></td>' +
         '</tr>';
     }).join('');
   }
 
+  function debtForRow(el) {
+    var tr = el.closest('tr');
+    if (!tr) return null;
+    return state.debts.find(function (d) { return d.id === tr.getAttribute('data-id'); }) || null;
+  }
+
   debtRowsEl.addEventListener('input', function (e) {
-    var tr = e.target.closest('tr');
     var field = e.target.getAttribute('data-field');
-    if (!tr || !field) return;
-    var debt = state.debts.find(function (d) { return d.id === tr.getAttribute('data-id'); });
-    if (!debt) return;
-    debt[field] = e.target.value;
+    var debt = debtForRow(e.target);
+    if (!field || !debt) return;
+    debt[field] = e.target.getAttribute('data-format')
+      ? parseNumStr(e.target.value)
+      : e.target.value;
     scheduleRecalc();
+  });
+
+  // focused: show the raw number; blurred: show it formatted
+  debtRowsEl.addEventListener('focusin', function (e) {
+    var format = e.target.getAttribute('data-format');
+    var debt = debtForRow(e.target);
+    if (!format || !debt) return;
+    e.target.value = debt[e.target.getAttribute('data-field')] || '';
+    e.target.select();
+  });
+
+  debtRowsEl.addEventListener('focusout', function (e) {
+    var format = e.target.getAttribute('data-format');
+    var debt = debtForRow(e.target);
+    if (!format || !debt) return;
+    e.target.value = FIELD_FORMATS[format](debt[e.target.getAttribute('data-field')]);
   });
 
   debtRowsEl.addEventListener('click', function (e) {
@@ -232,8 +278,22 @@
     return el;
   }
 
-  var extraEl = bindPlanInput('extra-monthly', 'extraMonthly', function (v) { return Math.max(0, +v || 0); });
-  var oneAmtEl = bindPlanInput('onetime-amount', 'oneTimeAmount', function (v) { return Math.max(0, +v || 0); });
+  var extraEl = bindPlanInput('extra-monthly', 'extraMonthly', function (v) { return Math.max(0, +parseNumStr(v) || 0); });
+  var oneAmtEl = bindPlanInput('onetime-amount', 'oneTimeAmount', function (v) { return Math.max(0, +parseNumStr(v) || 0); });
+
+  // plan money fields show grouped digits ("1,250") beside their $ prefix,
+  // and the plain number while being edited
+  function wirePlanMoneyField(el, key) {
+    el.addEventListener('focus', function () {
+      el.value = state[key] ? String(state[key]) : '';
+      el.select();
+    });
+    el.addEventListener('blur', function () {
+      el.value = state[key] ? state[key].toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0';
+    });
+  }
+  wirePlanMoneyField(extraEl, 'extraMonthly');
+  wirePlanMoneyField(oneAmtEl, 'oneTimeAmount');
   var oneMonthEl = bindPlanInput('onetime-month', 'oneTimeMonth', function (v) { return Math.max(1, +v || 1); });
   var startEl = document.getElementById('start-month');
   startEl.addEventListener('input', function () {
@@ -257,8 +317,8 @@
   }
 
   function syncPlanInputs() {
-    extraEl.value = state.extraMonthly;
-    oneAmtEl.value = state.oneTimeAmount;
+    extraEl.value = state.extraMonthly.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    oneAmtEl.value = state.oneTimeAmount.toLocaleString('en-US', { maximumFractionDigits: 2 });
     startEl.value = state.startMonth;
     rolloverEl.checked = state.rollover;
     fillOneTimeMonths();
