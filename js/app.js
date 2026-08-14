@@ -736,7 +736,7 @@
   var brandLogoDataUri = null;
   try {
     if (location.protocol === 'file:') throw new Error('no fetch from disk');
-    fetch('assets/gem-neo-collab-light.png?v=2').then(function (r) {
+    fetch('assets/gem-neo-collab-light.png?v=3').then(function (r) {
       return r.ok ? r.blob() : Promise.reject(new Error('http ' + r.status));
     }).then(function (blob) {
       var fr = new FileReader();
