@@ -730,6 +730,21 @@
 
   /* ---------------- game plan ---------------- */
 
+  /* Official lockup art, inlined as a data URI so saved and printed plans
+     carry the exact brand image even opened offline later. If the fetch
+     fails (page opened straight from disk), an SVG recreation stands in. */
+  var brandLogoDataUri = null;
+  try {
+    if (location.protocol === 'file:') throw new Error('no fetch from disk');
+    fetch('assets/gem-neo-collab-light.png').then(function (r) {
+      return r.ok ? r.blob() : Promise.reject(new Error('http ' + r.status));
+    }).then(function (blob) {
+      var fr = new FileReader();
+      fr.onload = function () { brandLogoDataUri = fr.result; };
+      fr.readAsDataURL(blob);
+    }).catch(function () { /* SVG fallback used */ });
+  } catch (e) { /* SVG fallback used */ }
+
   var gpModal = document.getElementById('gameplan-modal');
   var gpBody = document.getElementById('gp-body');
   var gpBodyHtml = gpBody.innerHTML; // pristine form, restored on each open
@@ -829,19 +844,22 @@
     var byId = {};
     debts.forEach(function (d) { byId[d.id] = d; });
 
-    var logo =
-      '<div class="lockup">' +
-      '<div class="gem"><svg viewBox="0 0 100 100" width="46" height="46" aria-hidden="true">' +
-      '<path d="M50 10 L7 47 L20 47 L20 86 Q20 92 26 92 L74 92 Q80 92 80 86 L80 47 L93 47 Z" fill="#16323f" stroke="#16323f" stroke-width="6" stroke-linejoin="round"/>' +
-      '<rect x="41.5" y="58.5" width="17" height="17" rx="3" transform="rotate(45 50 67)" fill="#3fb3e5"/></svg>' +
-      '<div><div class="gname">GEM HOME TEAM</div><div class="gtag">MORTGAGE LENDING</div></div></div>' +
-      '<span class="lx">×</span>' +
-      '<div class="neo"><svg viewBox="0 0 100 100" width="38" height="38" aria-hidden="true">' +
-      '<path d="M33 6 L67 6 Q73 6 76 11 L94 44 Q97 50 94 56 L76 89 Q73 94 67 94 L33 94 Q27 94 24 89 L6 56 Q3 50 6 44 L24 11 Q27 6 33 6 Z" fill="#15222c"/>' +
-      '<path d="M26 32 L57 50 L26 68 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>' +
-      '<path d="M74 32 L43 50 L74 68 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/></svg>' +
-      '<div><div class="nname">NEO</div><div class="ntag">HOME LOANS</div><div class="npow">powered by <b>Better</b></div></div></div>' +
-      '</div>';
+    var logo = brandLogoDataUri
+      ? '<div class="lockup"><img src="' + brandLogoDataUri + '" ' +
+        'alt="Gem Home Team Mortgage Lending × NEO Home Loans, powered by Better" ' +
+        'style="width:100%;max-width:470px;height:auto;display:block"></div>'
+      : '<div class="lockup">' +
+        '<div class="gem"><svg viewBox="0 0 100 100" width="46" height="46" aria-hidden="true">' +
+        '<path d="M50 10 L7 47 L20 47 L20 86 Q20 92 26 92 L74 92 Q80 92 80 86 L80 47 L93 47 Z" fill="#16323f" stroke="#16323f" stroke-width="6" stroke-linejoin="round"/>' +
+        '<rect x="41.5" y="58.5" width="17" height="17" rx="3" transform="rotate(45 50 67)" fill="#3fb3e5"/></svg>' +
+        '<div><div class="gname">GEM HOME TEAM</div><div class="gtag">MORTGAGE LENDING</div></div></div>' +
+        '<span class="lx">×</span>' +
+        '<div class="neo"><svg viewBox="0 0 100 100" width="40" height="40" aria-hidden="true">' +
+        '<path d="M50 4 L87 25 Q90 27 90 31 L90 69 Q90 73 87 75 L50 96 L13 75 Q10 73 10 69 L10 31 Q10 27 13 25 Z" fill="#15222c"/>' +
+        '<path d="M24 32 L58 50 L24 68 Z" fill="none" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>' +
+        '<path d="M76 32 L42 50 L76 68 Z" fill="none" stroke="#fff" stroke-width="8" stroke-linejoin="round"/></svg>' +
+        '<div><div class="nname">NEO</div><div class="ntag">HOME LOANS</div><div class="npow">powered by <b>Better</b></div></div></div>' +
+        '</div>';
 
     // Milestones: one step per debt in payoff order, with the money aimed at it.
     var rolled = 0;

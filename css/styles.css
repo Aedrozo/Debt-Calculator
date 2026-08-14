@@ -54,35 +54,13 @@ body {
 .site-header {
   background: var(--surface);
   border-bottom: 1px solid var(--hairline);
-  padding: 22px 0;
+  padding: 20px 0;
 }
-.logo-lockup {
-  display: flex; align-items: center; justify-content: center;
-  gap: clamp(18px, 4vw, 44px); flex-wrap: wrap;
+/* official brand lockup artwork */
+.logo-img {
+  display: block; margin: 0 auto;
+  width: min(720px, 94%); height: auto;
 }
-.logo-gem { display: flex; align-items: center; gap: 16px; }
-.gem-house { width: 64px; height: 64px; flex: none; }
-.gem-words { display: flex; flex-direction: column; gap: 2px; }
-.gem-name {
-  font-size: clamp(24px, 4vw, 34px); font-weight: 800; color: var(--navy);
-  letter-spacing: 0.02em; line-height: 1.05;
-}
-.gem-tag {
-  font-size: clamp(11px, 1.6vw, 14px); font-weight: 600; color: var(--sky);
-  letter-spacing: 0.42em;
-}
-.logo-x { color: var(--sky); font-size: 24px; font-weight: 600; }
-.logo-neo { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.neo-row { display: flex; align-items: center; gap: 12px; }
-.neo-badge { width: 52px; height: 52px; flex: none; }
-.neo-words { display: flex; flex-direction: column; }
-.neo-name {
-  font-size: 30px; font-weight: 800; color: var(--navy-deep);
-  letter-spacing: 0.14em; line-height: 1;
-}
-.neo-tag { font-size: 11px; font-weight: 600; color: var(--navy-deep); letter-spacing: 0.34em; }
-.neo-powered { font-size: 14px; color: var(--navy-deep); }
-.neo-powered strong { font-weight: 800; }
 
 /* ---------- Hero ---------- */
 .hero {
