@@ -1,8 +1,11 @@
 name: Deploy to GitHub Pages
 
+# Deploys from main: the auto-created github-pages environment only accepts
+# deployments from main, so main is the publishing branch. Do feature work on
+# other branches, then fast-forward main to publish.
 on:
   push:
-    branches: ["claude/debt-payoff-calculator-lew71t"]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
